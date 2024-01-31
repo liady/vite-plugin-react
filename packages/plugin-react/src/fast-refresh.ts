@@ -22,10 +22,10 @@ export default exports
 
 export const preambleCode = `
 import RefreshRuntime from "__BASE__${runtimePublicPath.slice(1)}"
-RefreshRuntime.injectIntoGlobalHook(window)
-window.$RefreshReg$ = () => {}
-window.$RefreshSig$ = () => (type) => type
-window.__vite_plugin_react_preamble_installed__ = true
+RefreshRuntime.injectIntoGlobalHook(globalThis)
+globalThis.$RefreshReg$ = () => {}
+globalThis.$RefreshSig$ = () => (type) => type
+globalThis.__vite_plugin_react_preamble_installed__ = true
 `
 
 const header = `
@@ -36,25 +36,25 @@ let prevRefreshReg;
 let prevRefreshSig;
 
 if (import.meta.hot && !inWebWorker) {
-  if (!window.__vite_plugin_react_preamble_installed__) {
+  if (!globalThis.__vite_plugin_react_preamble_installed__) {
     throw new Error(
       "@vitejs/plugin-react can't detect preamble. Something is wrong. " +
       "See https://github.com/vitejs/vite-plugin-react/pull/11#discussion_r430879201"
     );
   }
 
-  prevRefreshReg = window.$RefreshReg$;
-  prevRefreshSig = window.$RefreshSig$;
-  window.$RefreshReg$ = (type, id) => {
+  prevRefreshReg = globalThis.$RefreshReg$;
+  prevRefreshSig = globalThis.$RefreshSig$;
+  globalThis.$RefreshReg$ = (type, id) => {
     RefreshRuntime.register(type, __SOURCE__ + " " + id)
   };
-  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  globalThis.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
 }`.replace(/\n+/g, '')
 
 const footer = `
 if (import.meta.hot && !inWebWorker) {
-  window.$RefreshReg$ = prevRefreshReg;
-  window.$RefreshSig$ = prevRefreshSig;
+  globalThis.$RefreshReg$ = prevRefreshReg;
+  globalThis.$RefreshSig$ = prevRefreshSig;
 
   RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
     RefreshRuntime.registerExportsForReactRefresh(__SOURCE__, currentExports);
